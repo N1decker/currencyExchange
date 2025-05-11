@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet(name = "ExchangeRatesController", urlPatterns = "/exchangeRates")
+@WebServlet(name = "ExchangeRatesController", urlPatterns = "/api/exchangeRates")
 public class ExchangeRatesController extends HttpServlet {
 
     @Override

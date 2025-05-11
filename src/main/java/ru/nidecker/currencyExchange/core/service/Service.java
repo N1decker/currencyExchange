@@ -2,10 +2,10 @@ package ru.nidecker.currencyExchange.core.service;
 
 import java.util.List;
 
-public interface Service<E> {
-    List<E> findAll();
-    E findById(Integer id);
-    E create(E e);
-    E update(E e);
+public interface Service<E, D> {
+    List<D> findAll();
+    D findById(Integer id);
+    D create(E e);
+    D update(E e);
     void delete(Integer id);
 }
