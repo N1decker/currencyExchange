@@ -4,8 +4,13 @@ import ru.nidecker.currencyExchange.currency.Currency;
 import ru.nidecker.currencyExchange.currency.CurrencyRepository;
 import ru.nidecker.currencyExchange.currency.CurrencyResponse;
 import ru.nidecker.currencyExchange.currency.CurrencyService;
+import ru.nidecker.currencyExchange.exceptions.CouldNotSaveEntity;
+import ru.nidecker.currencyExchange.exceptions.InvalidParameterException;
 import ru.nidecker.currencyExchange.mapper.CurrencyMapper;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class CurrencyServiceImpl implements CurrencyService {
@@ -49,5 +54,30 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public void delete(Integer id) {
         repository.delete(id);
+    }
+
+    @Override
+    public Currency parseToCurrency(String line) {
+        String name = "", code = "", sign = "";
+        try {
+            String[] params = URLDecoder.decode(line, StandardCharsets.UTF_8.name()).split("&");
+            for (String param : params) {
+                if (param.contains("code")) {
+                    code = param.substring(param.indexOf("=") + 1);
+                } else if (param.contains("name")) {
+                    name = param.substring(param.indexOf("=") + 1);
+                } else if (param.contains("sign")) {
+                    sign = param.substring(param.indexOf("=") + 1);
+                }
+            }
+
+            if (code.isEmpty() || name.isEmpty() || sign.isEmpty()) {
+                throw new InvalidParameterException("Отсутствует нужное поле формы");
+            }
+        } catch (UnsupportedEncodingException e) {
+            throw new CouldNotSaveEntity(e.getMessage());
+        }
+
+        return new Currency(name, code, sign);
     }
 }

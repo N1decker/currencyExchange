@@ -5,15 +5,15 @@ import ru.nidecker.currencyExchange.currency.CurrencyResponse;
 import ru.nidecker.currencyExchange.currency.CurrencyService;
 import ru.nidecker.currencyExchange.currency.impl.CurrencyServiceImpl;
 import ru.nidecker.currencyExchange.exceptions.ExceptionResponse;
+import ru.nidecker.currencyExchange.exceptions.NotFoundException;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet(name = "CurrencyController", urlPatterns = "/api/currency/{code}")
+@WebServlet(name = "CurrencyController", urlPatterns = "/api/currency/*")
 public class CurrencyController extends HttpServlet {
     private final ObjectMapper mapper;
     private final CurrencyService currencyService;
@@ -24,7 +24,7 @@ public class CurrencyController extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String pathInfo = req.getPathInfo();
         String code;
         if (pathInfo != null && pathInfo.length() > 1) {
@@ -38,9 +38,12 @@ public class CurrencyController extends HttpServlet {
         try {
             CurrencyResponse currency = currencyService.findByCode(code);
             mapper.writeValue(resp.getWriter(), currency);
+        } catch (NotFoundException e) {
+            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            mapper.writeValue(resp.getWriter(), e.getMessage());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(), new ExceptionResponse(e.getMessage()));
         }
-
     }
 }
