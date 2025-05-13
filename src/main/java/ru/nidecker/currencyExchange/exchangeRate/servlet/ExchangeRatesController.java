@@ -1,17 +1,42 @@
 package ru.nidecker.currencyExchange.exchangeRate.servlet;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import ru.nidecker.currencyExchange.exceptions.ExceptionResponse;
+import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateResponse;
+import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateService;
+import ru.nidecker.currencyExchange.exchangeRate.impl.ExchangeRateServiceImpl;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 
 @WebServlet(name = "ExchangeRatesController", urlPatterns = "/api/exchangeRates")
 public class ExchangeRatesController extends HttpServlet {
+    private final ObjectMapper mapper;
+    private final ExchangeRateService service;
+
+    public ExchangeRatesController() {
+        this.mapper = new ObjectMapper();
+        this.service = new ExchangeRateServiceImpl();
+    }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.doGet(req, resp);
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        try {
+            List<ExchangeRateResponse> list = service.findAll();
+            mapper.writeValue(resp.getWriter(), list);
+        } catch (Exception e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(), new ExceptionResponse(e.getMessage()));
+        }
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doPost(req, resp);
     }
 }

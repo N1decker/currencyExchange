@@ -4,7 +4,9 @@ import ru.nidecker.currencyExchange.currency.Currency;
 import ru.nidecker.currencyExchange.currency.CurrencyRepository;
 import ru.nidecker.currencyExchange.currency.CurrencyResponse;
 import ru.nidecker.currencyExchange.currency.CurrencyService;
+import ru.nidecker.currencyExchange.exceptions.CouldNotFetchData;
 import ru.nidecker.currencyExchange.exceptions.CouldNotSaveEntity;
+import ru.nidecker.currencyExchange.exceptions.CouldNotUpdateEntity;
 import ru.nidecker.currencyExchange.exceptions.InvalidParameterException;
 import ru.nidecker.currencyExchange.mapper.CurrencyMapper;
 
@@ -29,25 +31,25 @@ public class CurrencyServiceImpl implements CurrencyService {
 
     @Override
     public CurrencyResponse findById(Integer id) {
-        Currency currency = repository.findById(id);
+        Currency currency = repository.findById(id).orElseThrow(() -> new CouldNotFetchData("Не удалось получить описание валюты"));
         return mapper.toCurrencyResponse(currency);
     }
 
     @Override
     public CurrencyResponse findByCode(String code) {
-        Currency currency = repository.findByCode(code);
+        Currency currency = repository.findByCode(code).orElseThrow(() -> new CouldNotFetchData("Не удалось получить описание валюты"));
         return mapper.toCurrencyResponse(currency);
     }
 
     @Override
     public CurrencyResponse create(Currency currency) {
-        currency = repository.create(currency);
+        currency = repository.create(currency).orElseThrow(() -> new CouldNotSaveEntity("Не удалось создать валюту"));
         return mapper.toCurrencyResponse(currency);
     }
 
     @Override
     public CurrencyResponse update(Currency currency) {
-        currency = repository.update(currency);
+        currency = repository.update(currency).orElseThrow(() -> new CouldNotUpdateEntity("Не удалось обновить описание валюты"));
         return mapper.toCurrencyResponse(currency);
     }
 

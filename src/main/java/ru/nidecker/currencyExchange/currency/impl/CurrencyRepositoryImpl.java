@@ -15,6 +15,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class CurrencyRepositoryImpl implements CurrencyRepository {
     private final ConnectionPool connectionPool = BasicConnectionPool.INSTANCE;
@@ -46,23 +47,25 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
     }
 
     @Override
-    public Currency findById(Integer id) {
-        return null;
+    public Optional<Currency> findById(Integer id) {
+        return Optional.empty();
     }
 
     @Override
-    public Currency findByCode(String code) {
+    public Optional<Currency> findByCode(String code) {
         Connection connection = connectionPool.getConnection();
         try {
             PreparedStatement preparedStatement = connection.prepareStatement("select * from currencies where lower(code) like lower(?)");
             preparedStatement.setString(1, code);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
-                return new Currency(
-                        resultSet.getInt("id"),
-                        resultSet.getString("fullName"),
-                        resultSet.getString("code"),
-                        resultSet.getString("sign")
+                return Optional.of(
+                        new Currency(
+                                resultSet.getInt("id"),
+                                resultSet.getString("fullName"),
+                                resultSet.getString("code"),
+                                resultSet.getString("sign")
+                        )
                 );
             } else throw new NotFoundException("Валюта не найдена");
         } catch (SQLException e) {
@@ -71,7 +74,7 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
     }
 
     @Override
-    public Currency create(Currency currency) {
+    public Optional<Currency> create(Currency currency) {
         Connection connection = connectionPool.getConnection();
         try {
             PreparedStatement preparedStatement = connection.prepareStatement("insert into currencies (FullName, Code, Sign) values (?, ?, ?) ");
@@ -88,8 +91,8 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
     }
 
     @Override
-    public Currency update(Currency currency) {
-        return null;
+    public Optional<Currency> update(Currency currency) {
+        return Optional.empty();
     }
 
     @Override
