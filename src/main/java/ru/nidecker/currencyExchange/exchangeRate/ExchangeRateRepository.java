@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface ExchangeRateRepository extends CRUDRepository<ExchangeRate> {
     Optional<ExchangeRate> findByPair(String code1 , String code2);
+
+    Optional<ExchangeRate> create(ExchangeRateRequest exchangeRateRequest);
 }

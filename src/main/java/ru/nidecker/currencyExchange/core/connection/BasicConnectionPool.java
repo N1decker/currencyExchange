@@ -34,6 +34,17 @@ public class BasicConnectionPool implements ConnectionPool{
         }
 
         INSTANCE = new BasicConnectionPool(pool);
+
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    INSTANCE.shutdown();
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }));
     }
 
     public BasicConnectionPool(List<Connection> connectionPool) {
@@ -71,5 +82,14 @@ public class BasicConnectionPool implements ConnectionPool{
     @Override
     public String getPassword() {
         return PASSWORD;
+    }
+
+    @Override
+    public void shutdown() throws SQLException {
+        usedConnections.forEach(this::releaseConnection);
+        for (Connection c : connectionPool) {
+            c.close();
+        }
+        connectionPool.clear();
     }
 }

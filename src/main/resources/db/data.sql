@@ -1,3 +1,5 @@
+-- PRAGMA journal_mode=WAL --для возможности чтения при параллельном инсерте
+
 insert into currencies (Code, FullName, Sign)
 values ('AUD', 'Australian dollar', 'A$'),
        ('RUB', 'Russian ruble', '₽'),

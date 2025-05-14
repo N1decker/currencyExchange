@@ -1,6 +1,9 @@
 package ru.nidecker.currencyExchange.core.connection;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public interface ConnectionPool {
     Connection getConnection();
@@ -8,4 +11,7 @@ public interface ConnectionPool {
     String getUrl();
     String getUser();
     String getPassword();
+    default void shutdown() throws SQLException {
+        throw new NotImplementedException();
+    }
 }

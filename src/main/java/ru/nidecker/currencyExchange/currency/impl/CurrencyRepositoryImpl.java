@@ -7,6 +7,7 @@ import ru.nidecker.currencyExchange.currency.Currency;
 import ru.nidecker.currencyExchange.currency.CurrencyRepository;
 import ru.nidecker.currencyExchange.exceptions.CouldNotSaveEntity;
 import ru.nidecker.currencyExchange.exceptions.DuplicationException;
+import ru.nidecker.currencyExchange.exceptions.MethodNotImplemented;
 import ru.nidecker.currencyExchange.exceptions.NotFoundException;
 
 import java.sql.Connection;
@@ -97,6 +98,6 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
 
     @Override
     public void delete(Integer id) {
-        throw new UnsupportedOperationException("Удаление не реализовано");
+        throw new MethodNotImplemented("Удаление не реализовано");
     }
 }

@@ -1,12 +1,15 @@
 package ru.nidecker.currencyExchange.exchangeRate.impl;
 
+import org.sqlite.SQLiteErrorCode;
 import ru.nidecker.currencyExchange.core.connection.BasicConnectionPool;
 import ru.nidecker.currencyExchange.core.connection.ConnectionPool;
 import ru.nidecker.currencyExchange.currency.Currency;
-import ru.nidecker.currencyExchange.exceptions.DatabaseException;
-import ru.nidecker.currencyExchange.exceptions.NotFoundException;
+import ru.nidecker.currencyExchange.currency.CurrencyRepository;
+import ru.nidecker.currencyExchange.currency.impl.CurrencyRepositoryImpl;
+import ru.nidecker.currencyExchange.exceptions.*;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRate;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRepository;
+import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRequest;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,7 +20,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
+    private final CurrencyRepository currencyRepository;
     private final ConnectionPool connectionPool = BasicConnectionPool.INSTANCE;
+
+    public ExchangeRateRepositoryImpl() {
+        this.currencyRepository = new CurrencyRepositoryImpl();
+    }
 
     @Override
     public List<ExchangeRate> findAll() {
@@ -111,8 +119,33 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     }
 
     @Override
-    public Optional<ExchangeRate> create(ExchangeRate exchangeRate) {
-        return Optional.empty();
+    public Optional<ExchangeRate> create(ExchangeRateRequest exchangeRateRequest) {
+        Connection connection = connectionPool.getConnection();
+        Optional<Currency> baseCurrency;
+        Optional<Currency> targetCurrency;
+        try {
+            baseCurrency = currencyRepository.findByCode(exchangeRateRequest.getBaseCurrency());
+            targetCurrency = currencyRepository.findByCode(exchangeRateRequest.getTargetCurrency());
+
+            if (!baseCurrency.isPresent() || !targetCurrency.isPresent()) {
+                throw new NotFoundException("Одна (или обе) валюта из валютной пары не существует в БД");
+            }
+
+            PreparedStatement preparedStatement = connection.prepareStatement("insert into exchangeRates (BaseCurrencyId, TargetCurrencyId, Rate) values (?, ?, ?)");
+            preparedStatement.setInt(1, baseCurrency.get().getId());
+            preparedStatement.setInt(2, targetCurrency.get().getId());
+            preparedStatement.setBigDecimal(3, exchangeRateRequest.getRate());
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT.code) {
+                throw new DuplicationException("Валютная пара с таким кодом уже существует");
+            } else throw new CouldNotSaveEntity(e.getLocalizedMessage());
+        } finally {
+            connectionPool.releaseConnection(connection);
+        }
+
+        return findByPair(baseCurrency.get().getCode(), targetCurrency.get().getCode());
     }
 
     @Override
@@ -121,7 +154,12 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     }
 
     @Override
+    public Optional<ExchangeRate> create(ExchangeRate exchangeRate) {
+        throw new MethodNotImplemented("Удаление не реализовано");
+    }
+
+    @Override
     public void delete(Integer id) {
-        throw new UnsupportedOperationException("Удаление не реализовано");
+        throw new MethodNotImplemented("Удаление не реализовано");
     }
 }
