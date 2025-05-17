@@ -11,6 +11,7 @@ import ru.nidecker.currencyExchange.exchangeRate.ExchangeRate;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRepository;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRequest;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -149,13 +150,41 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     }
 
     @Override
+    public Optional<ExchangeRate> update(String code1, String code2, BigDecimal rate) {
+        Connection connection = connectionPool.getConnection();
+        Optional<Currency> baseCurrency;
+        Optional<Currency> targetCurrency;
+        try {
+            baseCurrency = currencyRepository.findByCode(code1);
+            targetCurrency = currencyRepository.findByCode(code2);
+
+            if (!baseCurrency.isPresent() || !targetCurrency.isPresent()) {
+                throw new NotFoundException("Одна (или обе) валюта из валютной пары не существует в БД");
+            }
+
+            PreparedStatement preparedStatement = connection.prepareStatement("update exchangeRates set rate = ? where BaseCurrencyId = ? and TargetCurrencyId = ?");
+            preparedStatement.setBigDecimal(1, rate);
+            preparedStatement.setInt(2, baseCurrency.get().getId());
+            preparedStatement.setInt(3, targetCurrency.get().getId());
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DatabaseException(e.getMessage());
+        } finally {
+            connectionPool.releaseConnection(connection);
+        }
+
+        return findByPair(baseCurrency.get().getCode(), targetCurrency.get().getCode());
+    }
+
+    @Override
     public Optional<ExchangeRate> update(ExchangeRate exchangeRate) {
-        return Optional.empty();
+        throw new MethodNotImplemented("Обновление обменного курса не реализовано");
     }
 
     @Override
     public Optional<ExchangeRate> create(ExchangeRate exchangeRate) {
-        throw new MethodNotImplemented("Удаление не реализовано");
+        throw new MethodNotImplemented("Создание обменного курса не реализовано");
     }
 
     @Override

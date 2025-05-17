@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 
 @WebServlet(name = "ExchangeRateController", urlPatterns = "/api/exchangeRate/*")
 public class ExchangeRateController extends HttpServlet {
@@ -61,7 +62,41 @@ public class ExchangeRateController extends HttpServlet {
         }
     }
 
-    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String pathInfo = req.getPathInfo();
+        String pair, code1, code2;
+        if (pathInfo.length() == CURRENCY_CODES_PAIR_LENGTH + 1) {
+            pair = pathInfo.substring(1);
+            code1 = pair.substring(0, CURRENCY_CODES_PAIR_LENGTH / 2);
+            code2 = pair.substring(CURRENCY_CODES_PAIR_LENGTH / 2);
 
+        } else {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(), new ExceptionResponse("Коды валют пары отсутствуют в адресе"));
+            return;
+        }
+
+        String line = req.getReader().readLine();
+        String[] params = line.split("&");
+        BigDecimal rate = null;
+        for (String param : params) {
+            if (param.contains("rate")) {
+                rate = BigDecimal.valueOf(Double.parseDouble(param.substring(param.indexOf("=") + 1)));
+            }
+        }
+
+        if (rate == null || rate.doubleValue() < 0d) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            mapper.writeValue(resp.getWriter(), new ExceptionResponse("Отсутствует нужное поле формы"));
+            return;
+        }
+
+        try {
+            ExchangeRateResponse response = service.update(code1, code2, rate);
+            mapper.writeValue(resp.getWriter(), response);
+        } catch (Exception e) {
+            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            mapper.writeValue(resp.getWriter(), new ExceptionResponse(e.getMessage()));
+        }
     }
 }

@@ -11,7 +11,8 @@ import java.util.List;
 public class BasicConnectionPool implements ConnectionPool{
     private final List<Connection> connectionPool;
     private final List<Connection> usedConnections = new ArrayList<>();
-    private static final int INITIAL_POOL_SIZE = 10;
+    private static final int MAX_POOL_SIZE = 10;
+    private static final int MAX_TIMEOUT = 1000;
     private static final String URL = "jdbc:sqlite::resource:database.db";
     private static final String USER = "";
     private static final String PASSWORD = "";
@@ -24,13 +25,9 @@ public class BasicConnectionPool implements ConnectionPool{
             throw new RuntimeException(e);
         }
 
-        List<Connection> pool = new ArrayList<>(INITIAL_POOL_SIZE);
-        for (int i = 0; i < INITIAL_POOL_SIZE; i++) {
-            try {
-                pool.add(createConnection(URL, USER, PASSWORD));
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
+        List<Connection> pool = new ArrayList<>(MAX_POOL_SIZE);
+        for (int i = 0; i < MAX_POOL_SIZE; i++) {
+            pool.add(createConnection(URL, USER, PASSWORD));
         }
 
         INSTANCE = new BasicConnectionPool(pool);
@@ -53,8 +50,24 @@ public class BasicConnectionPool implements ConnectionPool{
 
     @Override
     public Connection getConnection() {
-        if (connectionPool.isEmpty()) throw new NoAvailableConnections("Нет доступных подключений к базе данных");
+        if (connectionPool.isEmpty()) {
+            if (usedConnections.size() < MAX_POOL_SIZE) {
+                connectionPool.add(createConnection(URL, USER, PASSWORD));
+            } else {
+                throw new NoAvailableConnections("Нет доступных подключений к базе данных");
+            }
+        }
+
         Connection connection = connectionPool.remove(connectionPool.size() - 1);
+
+        try {
+            if(!connection.isValid(MAX_TIMEOUT)){
+                connection = createConnection(URL, USER, PASSWORD);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
         usedConnections.add(connection);
         return connection;
     }
@@ -65,8 +78,12 @@ public class BasicConnectionPool implements ConnectionPool{
         return usedConnections.remove(connection);
     }
 
-    private static Connection createConnection(String url, String user, String password) throws SQLException {
-        return DriverManager.getConnection(url, user, password);
+    private static Connection createConnection(String url, String user, String password) {
+        try {
+            return DriverManager.getConnection(url, user, password);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

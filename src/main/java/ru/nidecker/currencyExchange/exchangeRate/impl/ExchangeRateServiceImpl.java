@@ -46,6 +46,12 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     }
 
     @Override
+    public ExchangeRateResponse update(String code1, String code2, BigDecimal rate) {
+        ExchangeRate exchangeRate = repository.update(code1, code2, rate).orElseThrow(() -> new CouldNotUpdateEntity("Не удалось обновить обменный курс"));
+        return mapper.toExchangeRateResponse(exchangeRate);
+    }
+
+    @Override
     public ExchangeRateResponse update(ExchangeRate exchangeRate) {
         ExchangeRate rate = repository.update(exchangeRate).orElseThrow(() -> new CouldNotUpdateEntity("Не удалось обновить обменный курс"));
         return mapper.toExchangeRateResponse(rate);
