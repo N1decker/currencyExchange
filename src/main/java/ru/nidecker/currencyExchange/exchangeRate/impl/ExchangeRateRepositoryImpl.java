@@ -7,7 +7,7 @@ import ru.nidecker.currencyExchange.currency.Currency;
 import ru.nidecker.currencyExchange.currency.CurrencyRepository;
 import ru.nidecker.currencyExchange.currency.impl.CurrencyRepositoryImpl;
 import ru.nidecker.currencyExchange.exceptions.*;
-import ru.nidecker.currencyExchange.exchangeRate.ExchangeRate;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRate;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRepository;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRequest;
 

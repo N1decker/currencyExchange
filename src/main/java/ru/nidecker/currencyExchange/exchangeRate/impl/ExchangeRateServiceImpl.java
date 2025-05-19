@@ -1,17 +1,21 @@
 package ru.nidecker.currencyExchange.exchangeRate.impl;
 
-import ru.nidecker.currencyExchange.exceptions.CouldNotFetchData;
-import ru.nidecker.currencyExchange.exceptions.CouldNotSaveEntity;
-import ru.nidecker.currencyExchange.exceptions.CouldNotUpdateEntity;
-import ru.nidecker.currencyExchange.exceptions.InvalidParameterException;
-import ru.nidecker.currencyExchange.exchangeRate.*;
+import ru.nidecker.currencyExchange.exceptions.*;
+import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRepository;
+import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRequest;
+import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateService;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRate;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRateResponse;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeResponse;
 import ru.nidecker.currencyExchange.mapper.ExchangeRateMapper;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Optional;
 
 public class ExchangeRateServiceImpl implements ExchangeRateService {
     private final ExchangeRateRepository repository;
@@ -103,5 +107,76 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
         }
 
         return new ExchangeRateRequest(baseCurrencyCode, targetCurrencyCode, rate);
+    }
+
+    @Override
+    public ExchangeResponse calculateExchange(String code1, String code2, String amount) {
+        if (amount == null || amount.isEmpty()) throw new InvalidParameterException("Отсутствует нужное поле формы");
+
+        BigDecimal convertedAmount = BigDecimal.valueOf(Double.parseDouble(amount));
+
+        if (code1 == null || code1.isEmpty()
+        || code2 == null || code2.isEmpty()
+        || convertedAmount.doubleValue() < 0d) {
+            throw new InvalidParameterException("Отсутствует нужное поле формы");
+        }
+
+        if (code1.equalsIgnoreCase(code2)) {
+            throw new InvalidParameterException("Передана одинаковая валюта в параметры");
+        }
+
+        Optional<ExchangeRate> byPair;
+        ExchangeRate rate;
+        try {
+            byPair = repository.findByPair(code1, code2);
+            if (byPair.isPresent()) {
+                rate = byPair.get();
+                return new ExchangeResponse(
+                        rate.getBaseCurrency(),
+                        rate.getTargetCurrency(),
+                        rate.getRate(),
+                        convertedAmount,
+                        rate.getRate().multiply(convertedAmount)
+                );
+            }
+        } catch (NotFoundException e) {
+            try {
+                byPair = repository.findByPair(code2, code1);
+                if (byPair.isPresent()) {
+                    rate = byPair.get();
+                    rate.setRate(BigDecimal.ONE.divide(rate.getRate(), 2, RoundingMode.HALF_UP));
+                    return new ExchangeResponse(
+                            rate.getTargetCurrency(),
+                            rate.getBaseCurrency(),
+                            rate.getRate(),
+                            convertedAmount,
+                            rate.getRate().multiply(convertedAmount)
+                    );
+                }
+            } catch (NotFoundException ex) {
+                try {
+                    Optional<ExchangeRate> usdToBase = repository.findByPair("USD", code1);
+                    Optional<ExchangeRate> usdToTarget = repository.findByPair("USD", code2);
+                    if (!usdToBase.isPresent() || !usdToTarget.isPresent()) {
+                        throw new CouldNotFetchData("Не удалось вычислить курс");
+                    }
+
+                    BigDecimal newRate = usdToTarget.get().getRate()
+                            .divide(usdToBase.get().getRate(), 2, RoundingMode.HALF_UP);
+                    return new ExchangeResponse(
+                            usdToBase.get().getBaseCurrency(),
+                            usdToTarget.get().getTargetCurrency(),
+                            newRate,
+                            convertedAmount,
+                            newRate.multiply(convertedAmount)
+                    );
+
+                } catch (NotFoundException exception) {
+                    throw new CouldNotFetchData("Не удалось вычислить курс");
+                }
+            }
+        }
+
+        throw new CouldNotFetchData("Не удалось вычислить курс");
     }
 }

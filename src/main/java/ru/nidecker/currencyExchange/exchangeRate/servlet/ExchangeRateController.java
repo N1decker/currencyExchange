@@ -3,7 +3,7 @@ package ru.nidecker.currencyExchange.exchangeRate.servlet;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ru.nidecker.currencyExchange.exceptions.ExceptionResponse;
 import ru.nidecker.currencyExchange.exceptions.NotFoundException;
-import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateResponse;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRateResponse;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateService;
 import ru.nidecker.currencyExchange.exchangeRate.impl.ExchangeRateServiceImpl;
 

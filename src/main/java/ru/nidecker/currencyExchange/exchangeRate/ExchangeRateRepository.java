@@ -1,7 +1,7 @@
 package ru.nidecker.currencyExchange.exchangeRate;
 
 import ru.nidecker.currencyExchange.core.repository.CRUDRepository;
-import ru.nidecker.currencyExchange.currency.Currency;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRate;
 
 import java.math.BigDecimal;
 import java.util.Optional;

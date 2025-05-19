@@ -2,8 +2,8 @@ package ru.nidecker.currencyExchange.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
-import ru.nidecker.currencyExchange.exchangeRate.ExchangeRate;
-import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateResponse;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRate;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRateResponse;
 
 import java.util.List;
 

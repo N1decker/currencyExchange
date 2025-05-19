@@ -1,4 +1,4 @@
-package ru.nidecker.currencyExchange.exchangeRate;
+package ru.nidecker.currencyExchange.exchangeRate.entity;
 
 import ru.nidecker.currencyExchange.currency.Currency;
 
