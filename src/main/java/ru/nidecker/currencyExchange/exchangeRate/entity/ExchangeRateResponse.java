@@ -1,6 +1,6 @@
 package ru.nidecker.currencyExchange.exchangeRate.entity;
 
-import ru.nidecker.currencyExchange.currency.Currency;
+import ru.nidecker.currencyExchange.currency.entity.Currency;
 
 import java.math.BigDecimal;
 

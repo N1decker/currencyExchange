@@ -3,7 +3,7 @@ package ru.nidecker.currencyExchange.currency.impl;
 import org.sqlite.SQLiteErrorCode;
 import ru.nidecker.currencyExchange.core.connection.BasicConnectionPool;
 import ru.nidecker.currencyExchange.core.connection.ConnectionPool;
-import ru.nidecker.currencyExchange.currency.Currency;
+import ru.nidecker.currencyExchange.currency.entity.Currency;
 import ru.nidecker.currencyExchange.currency.CurrencyRepository;
 import ru.nidecker.currencyExchange.exceptions.CouldNotSaveEntity;
 import ru.nidecker.currencyExchange.exceptions.DuplicationException;
@@ -77,6 +77,11 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
     @Override
     public Optional<Currency> create(Currency currency) {
         Connection connection = connectionPool.getConnection();
+
+        Optional<Currency> byCode = findByCode(currency.getCode());
+        if (byCode.isPresent())
+            throw new DuplicationException("Валюта с таким кодом уже существует");
+
         try {
             PreparedStatement preparedStatement = connection.prepareStatement("insert into currencies (FullName, Code, Sign) values (?, ?, ?) ");
             preparedStatement.setString(1, currency.getName());

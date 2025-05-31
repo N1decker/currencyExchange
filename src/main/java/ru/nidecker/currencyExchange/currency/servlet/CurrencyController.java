@@ -1,7 +1,7 @@
 package ru.nidecker.currencyExchange.currency.servlet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import ru.nidecker.currencyExchange.currency.CurrencyResponse;
+import ru.nidecker.currencyExchange.currency.entity.CurrencyResponse;
 import ru.nidecker.currencyExchange.currency.CurrencyService;
 import ru.nidecker.currencyExchange.currency.impl.CurrencyServiceImpl;
 import ru.nidecker.currencyExchange.exceptions.ExceptionResponse;

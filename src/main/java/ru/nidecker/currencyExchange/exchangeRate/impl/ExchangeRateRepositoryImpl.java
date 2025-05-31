@@ -3,13 +3,13 @@ package ru.nidecker.currencyExchange.exchangeRate.impl;
 import org.sqlite.SQLiteErrorCode;
 import ru.nidecker.currencyExchange.core.connection.BasicConnectionPool;
 import ru.nidecker.currencyExchange.core.connection.ConnectionPool;
-import ru.nidecker.currencyExchange.currency.Currency;
+import ru.nidecker.currencyExchange.currency.entity.Currency;
 import ru.nidecker.currencyExchange.currency.CurrencyRepository;
 import ru.nidecker.currencyExchange.currency.impl.CurrencyRepositoryImpl;
 import ru.nidecker.currencyExchange.exceptions.*;
 import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRate;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRepository;
-import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRequest;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRateRequest;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -125,11 +125,17 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
         Optional<Currency> baseCurrency;
         Optional<Currency> targetCurrency;
         try {
-            baseCurrency = currencyRepository.findByCode(exchangeRateRequest.getBaseCurrency());
-            targetCurrency = currencyRepository.findByCode(exchangeRateRequest.getTargetCurrency());
+            baseCurrency = currencyRepository.findByCode(exchangeRateRequest.getBaseCurrencyCode());
+            targetCurrency = currencyRepository.findByCode(exchangeRateRequest.getTargetCurrencyCode());
 
             if (!baseCurrency.isPresent() || !targetCurrency.isPresent()) {
                 throw new NotFoundException("Одна (или обе) валюта из валютной пары не существует в БД");
+            }
+
+            try {
+                Optional<ExchangeRate> byPair = findByPair(exchangeRateRequest.getBaseCurrencyCode(), exchangeRateRequest.getTargetCurrencyCode());
+                if (byPair.isPresent()) throw new DuplicationException("Валютная пара с таким кодом уже существует");
+            } catch (NotFoundException ignored) {
             }
 
             PreparedStatement preparedStatement = connection.prepareStatement("insert into exchangeRates (BaseCurrencyId, TargetCurrencyId, Rate) values (?, ?, ?)");

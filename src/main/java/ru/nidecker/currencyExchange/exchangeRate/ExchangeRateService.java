@@ -2,6 +2,7 @@ package ru.nidecker.currencyExchange.exchangeRate;
 
 import ru.nidecker.currencyExchange.core.service.Service;
 import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRate;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRateRequest;
 import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRateResponse;
 import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeResponse;
 

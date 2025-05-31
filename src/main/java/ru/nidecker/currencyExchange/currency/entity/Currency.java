@@ -1,4 +1,4 @@
-package ru.nidecker.currencyExchange.currency;
+package ru.nidecker.currencyExchange.currency.entity;
 
 public class Currency {
     private int id;

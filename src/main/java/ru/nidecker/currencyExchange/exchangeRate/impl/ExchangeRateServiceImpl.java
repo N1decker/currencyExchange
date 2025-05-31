@@ -2,7 +2,7 @@ package ru.nidecker.currencyExchange.exchangeRate.impl;
 
 import ru.nidecker.currencyExchange.exceptions.*;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRepository;
-import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRequest;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRateRequest;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateService;
 import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRate;
 import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRateResponse;
