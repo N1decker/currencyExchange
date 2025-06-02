@@ -1,10 +1,9 @@
 package ru.nidecker.currencyExchange.currency.impl;
 
 import org.sqlite.SQLiteErrorCode;
-import ru.nidecker.currencyExchange.core.connection.BasicConnectionPool;
-import ru.nidecker.currencyExchange.core.connection.ConnectionPool;
-import ru.nidecker.currencyExchange.currency.entity.Currency;
+import ru.nidecker.currencyExchange.core.Database;
 import ru.nidecker.currencyExchange.currency.CurrencyRepository;
+import ru.nidecker.currencyExchange.currency.entity.Currency;
 import ru.nidecker.currencyExchange.exceptions.CouldNotSaveEntity;
 import ru.nidecker.currencyExchange.exceptions.DuplicationException;
 import ru.nidecker.currencyExchange.exceptions.MethodNotImplemented;
@@ -19,13 +18,11 @@ import java.util.List;
 import java.util.Optional;
 
 public class CurrencyRepositoryImpl implements CurrencyRepository {
-    private final ConnectionPool connectionPool = BasicConnectionPool.INSTANCE;
 
     @Override
     public List<Currency> findAll() {
-        Connection connection = connectionPool.getConnection();
         List<Currency> list = new ArrayList<>();
-        try {
+        try(Connection connection = Database.getConnection()) {
             ResultSet resultSet = connection.prepareStatement("select * from currencies").executeQuery();
             while (resultSet.next()) {
                 list.add(
@@ -40,8 +37,6 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
-        } finally {
-            connectionPool.releaseConnection(connection);
         }
 
         return list;
@@ -54,8 +49,7 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
 
     @Override
     public Optional<Currency> findByCode(String code) {
-        Connection connection = connectionPool.getConnection();
-        try {
+        try(Connection connection = Database.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement("select * from currencies where lower(code) like lower(?)");
             preparedStatement.setString(1, code);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -76,13 +70,11 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
 
     @Override
     public Optional<Currency> create(Currency currency) {
-        Connection connection = connectionPool.getConnection();
-
         Optional<Currency> byCode = findByCode(currency.getCode());
         if (byCode.isPresent())
             throw new DuplicationException("Валюта с таким кодом уже существует");
 
-        try {
+        try(Connection connection = Database.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement("insert into currencies (FullName, Code, Sign) values (?, ?, ?) ");
             preparedStatement.setString(1, currency.getName());
             preparedStatement.setString(2, currency.getCode());

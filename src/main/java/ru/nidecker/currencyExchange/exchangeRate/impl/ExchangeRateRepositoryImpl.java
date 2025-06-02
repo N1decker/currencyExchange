@@ -1,14 +1,13 @@
 package ru.nidecker.currencyExchange.exchangeRate.impl;
 
 import org.sqlite.SQLiteErrorCode;
-import ru.nidecker.currencyExchange.core.connection.BasicConnectionPool;
-import ru.nidecker.currencyExchange.core.connection.ConnectionPool;
-import ru.nidecker.currencyExchange.currency.entity.Currency;
+import ru.nidecker.currencyExchange.core.Database;
 import ru.nidecker.currencyExchange.currency.CurrencyRepository;
+import ru.nidecker.currencyExchange.currency.entity.Currency;
 import ru.nidecker.currencyExchange.currency.impl.CurrencyRepositoryImpl;
 import ru.nidecker.currencyExchange.exceptions.*;
-import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRate;
 import ru.nidecker.currencyExchange.exchangeRate.ExchangeRateRepository;
+import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRate;
 import ru.nidecker.currencyExchange.exchangeRate.entity.ExchangeRateRequest;
 
 import java.math.BigDecimal;
@@ -22,7 +21,6 @@ import java.util.Optional;
 
 public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
     private final CurrencyRepository currencyRepository;
-    private final ConnectionPool connectionPool = BasicConnectionPool.INSTANCE;
 
     public ExchangeRateRepositoryImpl() {
         this.currencyRepository = new CurrencyRepositoryImpl();
@@ -30,9 +28,8 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
 
     @Override
     public List<ExchangeRate> findAll() {
-        Connection connection = connectionPool.getConnection();
         List<ExchangeRate> list = new ArrayList<>();
-        try {
+        try(Connection connection = Database.getConnection()) {
             ResultSet resultSet = connection.prepareStatement(
                     "select e.id, e.rate, " +
                         "base.id baseId, base.code baseCode, base.fullname baseName, base.sign baseSign, " +
@@ -64,9 +61,8 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
 
         } catch (SQLException e) {
             throw new DatabaseException(e.getMessage());
-        } finally {
-            connectionPool.releaseConnection(connection);
         }
+
         return list;
     }
 
@@ -77,9 +73,8 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
 
     @Override
     public Optional<ExchangeRate> findByPair(String code1, String code2) {
-        Connection connection = connectionPool.getConnection();
         Optional<ExchangeRate> rate;
-        try {
+        try(Connection connection = Database.getConnection()) {
             PreparedStatement preparedStatement = connection.prepareStatement(
                 "select e.id, e.rate, " +
                     "base.id baseId, base.code baseCode, base.fullname baseName, base.sign baseSign, " +
@@ -113,18 +108,16 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
             } else throw new NotFoundException(String.format("Пары %s/%s не найдено", code1, code2));
         } catch (SQLException e) {
             throw new DatabaseException(e.getMessage());
-        } finally {
-            connectionPool.releaseConnection(connection);
         }
+
         return rate;
     }
 
     @Override
     public Optional<ExchangeRate> create(ExchangeRateRequest exchangeRateRequest) {
-        Connection connection = connectionPool.getConnection();
         Optional<Currency> baseCurrency;
         Optional<Currency> targetCurrency;
-        try {
+        try(Connection connection = Database.getConnection()) {
             baseCurrency = currencyRepository.findByCode(exchangeRateRequest.getBaseCurrencyCode());
             targetCurrency = currencyRepository.findByCode(exchangeRateRequest.getTargetCurrencyCode());
 
@@ -148,8 +141,6 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
             if (e.getErrorCode() == SQLiteErrorCode.SQLITE_CONSTRAINT.code) {
                 throw new DuplicationException("Валютная пара с таким кодом уже существует");
             } else throw new CouldNotSaveEntity(e.getLocalizedMessage());
-        } finally {
-            connectionPool.releaseConnection(connection);
         }
 
         return findByPair(baseCurrency.get().getCode(), targetCurrency.get().getCode());
@@ -157,10 +148,9 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
 
     @Override
     public Optional<ExchangeRate> update(String code1, String code2, BigDecimal rate) {
-        Connection connection = connectionPool.getConnection();
         Optional<Currency> baseCurrency;
         Optional<Currency> targetCurrency;
-        try {
+        try(Connection connection = Database.getConnection()) {
             baseCurrency = currencyRepository.findByCode(code1);
             targetCurrency = currencyRepository.findByCode(code2);
 
@@ -176,8 +166,6 @@ public class ExchangeRateRepositoryImpl implements ExchangeRateRepository {
 
         } catch (SQLException e) {
             throw new DatabaseException(e.getMessage());
-        } finally {
-            connectionPool.releaseConnection(connection);
         }
 
         return findByPair(baseCurrency.get().getCode(), targetCurrency.get().getCode());
