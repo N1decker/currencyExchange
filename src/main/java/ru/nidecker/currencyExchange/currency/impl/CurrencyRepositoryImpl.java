@@ -7,7 +7,6 @@ import ru.nidecker.currencyExchange.currency.entity.Currency;
 import ru.nidecker.currencyExchange.exceptions.CouldNotSaveEntity;
 import ru.nidecker.currencyExchange.exceptions.DuplicationException;
 import ru.nidecker.currencyExchange.exceptions.MethodNotImplemented;
-import ru.nidecker.currencyExchange.exceptions.NotFoundException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -50,7 +49,7 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
     @Override
     public Optional<Currency> findByCode(String code) {
         try(Connection connection = Database.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement("select * from currencies where lower(code) like lower(?)");
+            PreparedStatement preparedStatement = connection.prepareStatement("select * from currencies where lower(Code) like lower(?)");
             preparedStatement.setString(1, code);
             ResultSet resultSet = preparedStatement.executeQuery();
             if (resultSet.next()) {
@@ -62,10 +61,12 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
                                 resultSet.getString("sign")
                         )
                 );
-            } else throw new NotFoundException("Валюта не найдена");
+            }
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
+        return Optional.empty();
     }
 
     @Override
@@ -75,7 +76,7 @@ public class CurrencyRepositoryImpl implements CurrencyRepository {
             throw new DuplicationException("Валюта с таким кодом уже существует");
 
         try(Connection connection = Database.getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement("insert into currencies (FullName, Code, Sign) values (?, ?, ?) ");
+            PreparedStatement preparedStatement = connection.prepareStatement("insert into currencies (FullName, Code, Sign) values (?, upper(?), ?)");
             preparedStatement.setString(1, currency.getName());
             preparedStatement.setString(2, currency.getCode());
             preparedStatement.setString(3, currency.getSign());

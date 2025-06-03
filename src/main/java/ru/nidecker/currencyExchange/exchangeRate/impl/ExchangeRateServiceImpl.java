@@ -144,7 +144,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
                 byPair = repository.findByPair(code2, code1);
                 if (byPair.isPresent()) {
                     rate = byPair.get();
-                    rate.setRate(BigDecimal.ONE.divide(rate.getRate(), 2, RoundingMode.HALF_UP));
+                    rate.setRate(BigDecimal.ONE.divide(rate.getRate(), 3, RoundingMode.HALF_UP));
                     return new ExchangeResponse(
                             rate.getTargetCurrency(),
                             rate.getBaseCurrency(),
@@ -162,7 +162,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
                     }
 
                     BigDecimal newRate = usdToTarget.get().getRate()
-                            .divide(usdToBase.get().getRate(), 2, RoundingMode.HALF_UP);
+                            .divide(usdToBase.get().getRate(), 3, RoundingMode.HALF_UP);
                     return new ExchangeResponse(
                             usdToBase.get().getBaseCurrency(),
                             usdToTarget.get().getTargetCurrency(),
