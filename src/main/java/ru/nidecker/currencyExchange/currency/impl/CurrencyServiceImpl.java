@@ -76,6 +76,11 @@ public class CurrencyServiceImpl implements CurrencyService {
             if (code.isEmpty() || name.isEmpty() || sign.isEmpty()) {
                 throw new InvalidParameterException("Отсутствует нужное поле формы");
             }
+
+            if (code.length() > 3 || name.length() > 30 || sign.length() > 3) {
+                throw new InvalidParameterException("Длина одного из параметров выше допустимого(code<=3; name<=30; sign<=3;)");
+            }
+
         } catch (UnsupportedEncodingException e) {
             throw new CouldNotSaveEntity(e.getMessage());
         }

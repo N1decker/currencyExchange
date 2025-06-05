@@ -92,8 +92,16 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
                 }
             }
 
+            if (rate.doubleValue() <= 0d) {
+                throw new InvalidParameterException("Курс не может быть меньше 0.001");
+            }
+
             if (baseCurrencyCode.isEmpty() || targetCurrencyCode.isEmpty() || rate.equals(BigDecimal.ZERO)) {
                 throw new InvalidParameterException("Отсутствует нужное поле формы");
+            }
+
+            if (baseCurrencyCode.length() > 3 || targetCurrencyCode.length() > 3) {
+                throw new InvalidParameterException("Передано некорректное значение валют(ы)");
             }
 
             if (baseCurrencyCode.equalsIgnoreCase(targetCurrencyCode)) {
@@ -113,12 +121,19 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
     public ExchangeResponse calculateExchange(String code1, String code2, String amount) {
         if (amount == null || amount.isEmpty()) throw new InvalidParameterException("Отсутствует нужное поле формы");
 
-        BigDecimal convertedAmount = BigDecimal.valueOf(Double.parseDouble(amount));
+        BigDecimal convertedAmount;
+        try {
+            convertedAmount = BigDecimal.valueOf(Double.parseDouble(amount));
+        } catch (NumberFormatException e) {
+            throw new InvalidParameterException("В поле amount передано неправильное значение");
+        }
 
         if (code1 == null || code1.isEmpty()
         || code2 == null || code2.isEmpty()
         || convertedAmount.doubleValue() < 0d) {
             throw new InvalidParameterException("Отсутствует нужное поле формы");
+        } else if (code1.length() > 3 || code2.length() > 3) {
+            throw new InvalidParameterException("Передано некорректное значение валют(ы)");
         }
 
         if (code1.equalsIgnoreCase(code2)) {

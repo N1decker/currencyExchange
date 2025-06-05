@@ -130,8 +130,15 @@ $(document).ready(function() {
     // add event handler for edit exchange rate modal "Save" button
     $('#edit-exchange-rate-modal .btn-primary').click(function() {
         // get the currency pair and exchange rate from the modal
+        const toast = $('#api-error-toast');
         const pair = $('#edit-exchange-rate-modal .modal-title').text().replace('Edit ', '').replace(' Exchange Rate', '');
         const exchangeRate = $('#edit-exchange-rate-modal #exchange-rate-input').val();
+
+        if (exchangeRate <= 0) {
+            $(toast).find('.toast-body').text("Курс не может быть меньше 0.001");
+            toast.toast("show");
+            return;
+        }
 
         // set changed values to the table row
         const row = $(`tr:contains(${pair})`);
@@ -148,7 +155,6 @@ $(document).ready(function() {
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 const error = JSON.parse(jqXHR.responseText);
-                const toast = $('#api-error-toast');
 
                 $(toast).find('.toast-body').text(error.message);
                 toast.toast("show");
