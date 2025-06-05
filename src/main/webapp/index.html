@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/bootstrap.css" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico"/>
     <title>Currency Exchange Service</title>
 </head>
 <body style="background-color: #96a8ae">
@@ -37,15 +38,15 @@
                 <form id="add-currency">
                     <div class="form-group mt-3">
                         <label for="add-currency-code">Code</label>
-                        <input type="text" name="code" placeholder="USD" class="form-control form-control-sm currency-code" id="add-currency-code">
+                        <input type="text" maxlength="3" name="code" placeholder="USD" class="form-control form-control-sm currency-code" id="add-currency-code">
                     </div>
                     <div class="form-group mt-3">
                         <label for="add-currency-name">Name</label>
-                        <input type="text" name="name" placeholder="US Dollar" class="form-control form-control-sm" id="add-currency-name">
+                        <input type="text" maxlength="30" name="name" placeholder="US Dollar" class="form-control form-control-sm" id="add-currency-name">
                     </div>
                     <div class="form-group mt-3">
                         <label for="add-currency-sign">Sign</label>
-                        <input type="text" name="sign" placeholder="$" class="form-control form-control-sm" id="add-currency-sign">
+                        <input type="text" maxlength="3" name="sign" placeholder="$" class="form-control form-control-sm" id="add-currency-sign">
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm mt-4">Add Currency</button>
                 </form>
@@ -88,7 +89,7 @@
                     <form>
                         <div class="form-group">
                             <label for="exchange-rate-input">Exchange Rate:</label>
-                            <input type="text" class="form-control" id="exchange-rate-input" value="1.00">
+                            <input type="number" class="form-control" id="exchange-rate-input" value="1.00">
                         </div>
                     </form>
                 </div>
@@ -119,7 +120,7 @@
                     </div>
                     <div class="form-group mt-3">
                         <label for="exchange-rate">Exchange Rate</label>
-                        <input type="text" placeholder="1.23" class="form-control" name="rate" id="exchange-rate">
+                        <input type="text" maxlength="7" placeholder="1.23" class="form-control" name="rate" id="exchange-rate">
                     </div>
                     <button type="submit" class="btn btn-primary mt-3">Add Exchange Rate</button>
                 </form>
@@ -143,13 +144,13 @@
                         <div class="col-6">
                             <div class="form-group mt-3">
                                 <label for="convert-amount">Amount</label>
-                                <input placeholder="1.23" type="text" class="form-control" id="convert-amount">
+                                <input placeholder="1.23" maxlength="10" type="text" class="form-control" id="convert-amount">
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="form-group mt-3">
                                 <label for="convert-converted-amount">Converted amount</label>
-                                <input type="text" class="form-control" id="convert-converted-amount">
+                                <input type="text" class="form-control" id="convert-converted-amount" style="pointer-events: none">
                             </div>
                         </div>
                     </div>
